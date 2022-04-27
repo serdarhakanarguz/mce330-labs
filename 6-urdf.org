@@ -85,7 +85,7 @@ roslaunch urdf_tutorial display.launch model:=urdf/01-myfirst.urdf
 
 You should see the following object in RViz !
 
-[[./images/urdf_cylinder.png]]
+[[file:./images/urdf_cylinder.PNG]]
 
 After you see the cyclinder, you can stop the roslaunch process. This will also kill the RViz.
 
@@ -133,7 +133,7 @@ roslaunch urdf_tutorial display.launch model:=urdf/02-multipleshapes.urdf
 
 *Examine the visual you see in RViz, try to figure out how these objects are placed. Where are their origins ?*
 
-[[./images/urdf_multiple.png]]
+[[./images/urdf_multiple.PNG]]
 
 * R2D2 Model
 ** R2D2 Step 1
@@ -184,7 +184,7 @@ R2D2’s leg attaches to the top half of his torso, on the side. So that’s whe
 *NOTE:* URDF files are simple XML files, but Visual Studio Code doesn't know it yet. It sees the .URDF file format and doesn't understand it.
 To get appropriate syntax highlighting, select "XML" from the bottom right corner.
 
-[[./images/codexml.png]]
+[[./images/codexml.PNG]]
 
 Let's see how it looks:
 #+BEGIN_SRC bash
@@ -193,7 +193,7 @@ roslaunch urdf_tutorial display.launch model:=urdf/r2d2step1.urdf
 #+END_SRC
 
 You will see something like this:
-[[./images/r2d2step1.png]]
+[[./images/r2d2step1.PNG]]
 
 ** R2D2 Step 2
 Let's improve our model a bit ! Now, we will create a new urdf file that will include not just a new leg, _but also some colors!_
@@ -552,7 +552,7 @@ You task is to:
 
 Once you see something like this, call the instructor to get your score.
 
-[[./images/r2d2final.png]]
+[[./images/r2d2final.PNG]]
 
 
 
