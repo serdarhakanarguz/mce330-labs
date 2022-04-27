@@ -5,12 +5,10 @@
 - [[file:3-rosactions.org][Services, Actions and Custom Messages]]
 - [[file:4-launchfiles.org][Launch Files and Rosqt Tools]]
 - [[file:5-tf.org][Robot Joints, Frames and Transforms]]
-- Working with Transforms
-- URDF Modeling 1
+- [[file:6-urdf.org][URDF Modeling 1]]
 - URDF Modeling 2
 - Gazebo
 - ROS Control
 - 
-- Rosbag, Debugging, etc.
-- 
+
 

@@ -24,6 +24,556 @@ It is primarly used in conjuction with ROS & Gazebo, but many other platforms li
 
 
 * Pre-Requisites
-  
-  
+We will need a package called "urdf_tutorial" for this week.
+The package can be found on GitHub. We will directly clone it into our own workspace.
+
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src
+git clone https://github.com/ros/urdf_tutorial
+#+END_SRC
+
+*Important:*
+This package has a setting we would like to fix.
+Open up this file:
+#+BEGIN_SRC bash
+code ~/catkin_ws/src/urdf_tutorial/rviz/urdf.rviz
+#+END_SRC
+
+At line 11, change the value to the following:
+#+BEGIN_SRC txt
+Alpha: 1.0
+#+END_SRC
+
+
+Now, we can build the workspace. Before we do so, let's check for any dependencies, if any.
+This is a useful thing to do once you obtain a new package from external sources.
+#+BEGIN_SRC bash
+cd ~/catkin_ws
+rosdep update
+rosdep install --from-paths src --ignore-src -r -y
+#+END_SRC
+
+Then,
+#+BEGIN_SRC bash
+catkin_make
+source devel/setup.bash
+#+END_SRC
+
+
+* URDF Example 1: Single Link
+The URDF tutorial package comes with this simple URDF file. You do not have to create this yourself.
+Let's see how this file looks.
+
+#+BEGIN_SRC xml
+<?xml version="1.0"?>
+<robot name="myfirst">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>
+#+END_SRC
+
+To see it, run
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src/urdf_tutorial
+roslaunch urdf_tutorial display.launch model:=urdf/01-myfirst.urdf
+#+END_SRC
+
+You should see the following object in RViz !
+
+[[./images/urdf_cylinder.png]]
+
+After you see the cyclinder, you can stop the roslaunch process. This will also kill the RViz.
+
+*Now, please listen to your instructor as he explains this URDF file a bit.*
+
+* URDF Example 2: Multiple Links
+Now let’s look at how to add multiple shapes/links. If we just add more link elements to the urdf, the parser won’t know where to put them. So, we have to add joints.
+For simplicity sake, we will start with a fixed joint !
+
+#+BEGIN_SRC xml
+<?xml version="1.0"?>
+<robot name="multipleshapes">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="right_leg">
+    <visual>
+      <geometry>
+        <box size="0.6 0.1 0.2"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="base_to_right_leg" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_leg"/>
+  </joint>
+
+</robot>
+#+END_SRC
+
+*Remark:*
+- Note how we defined a 0.6m x 0.1m x 0.2m box
+- The joint is defined in terms of a parent and a child. URDF is ultimately a tree structure with one root link. This means that the leg’s position is dependent on the base_link’s position.
+
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src/urdf_tutorial
+roslaunch urdf_tutorial display.launch model:=urdf/02-multipleshapes.urdf
+#+END_SRC
+
+*Examine the visual you see in RViz, try to figure out how these objects are placed. Where are their origins ?*
+
+[[./images/urdf_multiple.png]]
+
+* R2D2 Model
+** R2D2 Step 1
+Remember R2D2 from Star Wars ? Let's build it step by step and you will get the idea !
+
+[[./images/r2d2image.jpg]]
+
+The urdf-tutorial model already comes with the files, but let's create them ourselves to practice. 
+Just like how we put message files into a msg directory, and launch files in a launch directory, we put URDF files in a urdf directory.
+
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src/urdf_tutorial/urdf
+touch r2d2step1.urdf
+code r2d2step1.urdf
+#+END_SRC
+
+Here is what we will do with this URDF file.
+R2D2’s leg attaches to the top half of his torso, on the side. So that’s where we specify the origin of the JOINT to be. Also, it doesn’t attach to the middle of the leg, it attaches to the upper part, so we must offset the origin for the leg as well. We also rotate the leg so it is upright.
+#+BEGIN_SRC xml
+<?xml version="1.0"?>
+<robot name="origins">
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="right_leg">
+    <visual>
+      <geometry>
+        <box size="0.6 0.1 0.2"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0 0 -0.3"/>
+    </visual>
+  </link>
+
+  <joint name="base_to_right_leg" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_leg"/>
+    <origin xyz="0 -0.22 0.25"/>
+  </joint>
+
+</robot>
+#+END_SRC
+
+*NOTE:* URDF files are simple XML files, but Visual Studio Code doesn't know it yet. It sees the .URDF file format and doesn't understand it.
+To get appropriate syntax highlighting, select "XML" from the bottom right corner.
+
+[[./images/codexml.png]]
+
+Let's see how it looks:
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src/urdf_tutorial
+roslaunch urdf_tutorial display.launch model:=urdf/r2d2step1.urdf
+#+END_SRC
+
+You will see something like this:
+[[./images/r2d2step1.png]]
+
+** R2D2 Step 2
+Let's improve our model a bit ! Now, we will create a new urdf file that will include not just a new leg, _but also some colors!_
+We can define colors using materials. Materials can have all sorts of properties, but now we will just set its color.
+
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src/urdf_tutorial/urdf
+touch r2d2step2.urdf
+code r2d2step2.urdf
+#+END_SRC
+
+Put the following in it:
+#+BEGIN_SRC xml
+<?xml version="1.0"?>
+<robot name="materials">
+
+  <material name="blue">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <link name="right_leg">
+    <visual>
+      <geometry>
+        <box size="0.6 0.1 0.2"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0 0 -0.3"/>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <joint name="base_to_right_leg" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_leg"/>
+    <origin xyz="0 -0.22 0.25"/>
+  </joint>
+
+  <link name="left_leg">
+    <visual>
+      <geometry>
+        <box size="0.6 0.1 0.2"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0 0 -0.3"/>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <joint name="base_to_left_leg" type="fixed">
+    <parent link="base_link"/>
+    <child link="left_leg"/>
+    <origin xyz="0 0.22 0.25"/>
+  </joint>
+
+</robot>
+#+END_SRC
+
+Here, we define the materials with the appropriate colors at the top of the file.
+Then, we can use the materials under the visual properties of the links !
+The file also adds yet another link, and its appropriate joint.
+
+#+BEGIN_SRC bash
+cd ~/catkin_ws/src/urdf_tutorial
+roslaunch urdf_tutorial display.launch model:=urdf/r2d2step2.urdf
+#+END_SRC
+
+To improve the model, we would add the head, the arm and the rest of the smaller stuff.
+So far you have seen the geometry of a *cyclinder* and a *box*. A sphere can be used for the head !
+It would be something like:
+
+#+BEGIN_SRC xml
+  <link name="head">
+    <visual>
+      <geometry>
+        <sphere radius="0.2"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+#+END_SRC
+
+*Question:* What about complicated shapes that are not cylinders, boxes or speheres ?
+For such shapes, we use "meshes". A mesh is basically a universal 3D model file.
+For example, parts you can draw in SOLIDWORKS can be exported as meshes.
+
+* R2D2 Final Version (100 pts)
+Let's finish this up.
+URDF tutorials package comes with the required meshes for the arm and the gripper of the R2D2 robot.
+I'm giving you the final URDF file below.
+You task is to:
+
+- Create a new urdf file called r2d2final.urdf
+- Put the content provided below in it.
+- Visualize it in RViz.
+
+#+BEGIN_SRC xml
+<?xml version="1.0"?>
+<robot name="visual">
+
+  <material name="blue">
+    <color rgba="0 0 0.8 1"/>
+  </material>
+  <material name="black">
+    <color rgba="0 0 0 1"/>
+  </material>
+  <material name="white">
+    <color rgba="1 1 1 1"/>
+  </material>
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <cylinder length="0.6" radius="0.2"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <link name="right_leg">
+    <visual>
+      <geometry>
+        <box size="0.6 0.1 0.2"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0 0 -0.3"/>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <joint name="base_to_right_leg" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_leg"/>
+    <origin xyz="0 -0.22 0.25"/>
+  </joint>
+
+  <link name="right_base">
+    <visual>
+      <geometry>
+        <box size="0.4 0.1 0.1"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <joint name="right_base_joint" type="fixed">
+    <parent link="right_leg"/>
+    <child link="right_base"/>
+    <origin xyz="0 0 -0.6"/>
+  </joint>
+
+  <link name="right_front_wheel">
+    <visual>
+      <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="right_front_wheel_joint" type="fixed">
+    <parent link="right_base"/>
+    <child link="right_front_wheel"/>
+    <origin rpy="0 0 0" xyz="0.133333333333 0 -0.085"/>
+  </joint>
+
+  <link name="right_back_wheel">
+    <visual>
+      <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="right_back_wheel_joint" type="fixed">
+    <parent link="right_base"/>
+    <child link="right_back_wheel"/>
+    <origin rpy="0 0 0" xyz="-0.133333333333 0 -0.085"/>
+  </joint>
+
+  <link name="left_leg">
+    <visual>
+      <geometry>
+        <box size="0.6 0.1 0.2"/>
+      </geometry>
+      <origin rpy="0 1.57075 0" xyz="0 0 -0.3"/>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <joint name="base_to_left_leg" type="fixed">
+    <parent link="base_link"/>
+    <child link="left_leg"/>
+    <origin xyz="0 0.22 0.25"/>
+  </joint>
+
+  <link name="left_base">
+    <visual>
+      <geometry>
+        <box size="0.4 0.1 0.1"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+
+  <joint name="left_base_joint" type="fixed">
+    <parent link="left_leg"/>
+    <child link="left_base"/>
+    <origin xyz="0 0 -0.6"/>
+  </joint>
+
+  <link name="left_front_wheel">
+    <visual>
+      <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="left_front_wheel_joint" type="fixed">
+    <parent link="left_base"/>
+    <child link="left_front_wheel"/>
+    <origin rpy="0 0 0" xyz="0.133333333333 0 -0.085"/>
+  </joint>
+
+  <link name="left_back_wheel">
+    <visual>
+      <origin rpy="1.57075 0 0" xyz="0 0 0"/>
+      <geometry>
+        <cylinder length="0.1" radius="0.035"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+  </link>
+  <joint name="left_back_wheel_joint" type="fixed">
+    <parent link="left_base"/>
+    <child link="left_back_wheel"/>
+    <origin rpy="0 0 0" xyz="-0.133333333333 0 -0.085"/>
+  </joint>
+
+  <joint name="gripper_extension" type="fixed">
+    <parent link="base_link"/>
+    <child link="gripper_pole"/>
+    <origin rpy="0 0 0" xyz="0.19 0 0.2"/>
+  </joint>
+
+  <link name="gripper_pole">
+    <visual>
+      <geometry>
+        <cylinder length="0.2" radius="0.01"/>
+      </geometry>
+      <origin rpy="0 1.57075 0 " xyz="0.1 0 0"/>
+    </visual>
+  </link>
+
+  <joint name="left_gripper_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0.2 0.01 0"/>
+    <parent link="gripper_pole"/>
+    <child link="left_gripper"/>
+  </joint>
+
+  <link name="left_gripper">
+    <visual>
+      <origin rpy="0.0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://urdf_tutorial/meshes/l_finger.dae"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="left_tip_joint" type="fixed">
+    <parent link="left_gripper"/>
+    <child link="left_tip"/>
+  </joint>
+
+  <link name="left_tip">
+    <visual>
+      <origin rpy="0.0 0 0" xyz="0.09137 0.00495 0"/>
+      <geometry>
+        <mesh filename="package://urdf_tutorial/meshes/l_finger_tip.dae"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="right_gripper_joint" type="fixed">
+    <origin rpy="0 0 0" xyz="0.2 -0.01 0"/>
+    <parent link="gripper_pole"/>
+    <child link="right_gripper"/>
+  </joint>
+
+  <link name="right_gripper">
+    <visual>
+      <origin rpy="-3.1415 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://urdf_tutorial/meshes/l_finger.dae"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <joint name="right_tip_joint" type="fixed">
+    <parent link="right_gripper"/>
+    <child link="right_tip"/>
+  </joint>
+
+  <link name="right_tip">
+    <visual>
+      <origin rpy="-3.1415 0 0" xyz="0.09137 0.00495 0"/>
+      <geometry>
+        <mesh filename="package://urdf_tutorial/meshes/l_finger_tip.dae"/>
+      </geometry>
+    </visual>
+  </link>
+
+  <link name="head">
+    <visual>
+      <geometry>
+        <sphere radius="0.2"/>
+      </geometry>
+      <material name="white"/>
+    </visual>
+  </link>
+  <joint name="head_swivel" type="fixed">
+    <parent link="base_link"/>
+    <child link="head"/>
+    <origin xyz="0 0 0.3"/>
+  </joint>
+
+  <link name="box">
+    <visual>
+      <geometry>
+        <box size="0.08 0.08 0.08"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+  </link>
+
+  <joint name="tobox" type="fixed">
+    <parent link="head"/>
+    <child link="box"/>
+    <origin xyz="0.1814 0 0.1414"/>
+  </joint>
+</robot>
+#+END_SRC
+
+
+Once you see something like this, call the instructor to get your score.
+
+[[./images/r2d2final.png]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
